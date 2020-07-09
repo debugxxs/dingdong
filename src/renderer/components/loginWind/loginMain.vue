@@ -45,6 +45,39 @@
       <div class="loginBtn">
         <el-button type="success" plain @click="login('users')">登 陆</el-button>
       </div>
+      <div class="dialogClass">
+        <el-dialog
+          title="修改第一次登陆密码"
+          :visible.sync="dialogFormVisible"
+          width="400px"
+          top="18px"
+          :lock-scroll="false"
+        >
+          <el-form :model="userProblem">
+            <div class="selectBox">
+              安全问题：
+              <el-select v-model="userProblem.problem" placeholder="请选择问题：">
+                <el-option :label="problem1" value="shanghai"></el-option>
+                <el-option :label="problem2" value="beijing"></el-option>
+              </el-select>
+            </div>
+
+            <el-form-item label="问题答案：">
+              <el-input v-model="userProblem.answer" autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="新密码：">
+              <el-input autocomplete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="确认密码：">
+              <el-input v-model="userProblem.password" autocomplete="off"></el-input>
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogFormVisible = false">取 消</el-button>
+            <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+          </div>
+        </el-dialog>
+      </div>
     </div>
   </div>
 </template>
@@ -70,7 +103,16 @@ export default {
           { required: true, message: "请输入用户名", trigger: "blur" },
           { min: 1, max: 5, message: "长度在 1 到 5 个字符", trigger: "blur" }
         ]
-      }
+      },
+      dialogFormVisible: false,
+      userProblem: {
+        userName: "",
+        problem: "",
+        password:'',
+        answer:''
+      },
+      problem1: "您的毕业学校名称？",
+      problem2: "最喜欢的运动项目是？"
     };
   },
   methods: {
@@ -100,22 +142,19 @@ export default {
     login(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
-          this.$api.post(
-            "/login",
-           this.users,
-            response => {
-              if (response.status >= 200 && response.status < 300) {
-                
-                if (response.data.code ===200){
-                    console.log(response.data.token);
-                    localStorage.setItem('token',response.data.token)
-                    this.$electron.ipcRenderer.send("loadHome", "this is msg");
-                }
-              } else {
-                console.log(response.message);
+          this.dialogFormVisible = true;
+          this.$api.post("/login", this.users, response => {
+            if (response.status >= 200 && response.status < 300) {
+              if (response.data.code === 200) {
+                console.log(response.data.token);
+                localStorage.setItem("token", response.data.token);
+
+                this.$electron.ipcRenderer.send("loadHome", "this is msg");
               }
+            } else {
+              console.log(response.message);
             }
-          );
+          });
         } else {
           console.log("error submit!!");
           return false;
@@ -124,8 +163,8 @@ export default {
     },
     modifyPassWind() {
       let win = this.$Win.createWin({
-        width: 450,
-        height: 350,
+        width: 500,
+        height: 400,
         resizable: false,
         maximizable: false,
         windowConfig: {
@@ -140,9 +179,8 @@ export default {
     }
   },
   beforeDestroy() {
-    localStorage.setItem('token',''),
-    localStorage.setItem('userName','')
-  },
+    localStorage.setItem("token", ""), localStorage.setItem("userName", "");
+  }
 };
 </script>
 <style lang="scss">
@@ -176,7 +214,7 @@ export default {
       height: 80px;
       width: 80px;
       position: absolute;
-      right: 185px;
+      right: 215px;
       top: -40px;
       .el-avatar {
         border: solid 5px #fff;
@@ -185,13 +223,13 @@ export default {
     }
     .loginInput {
       position: absolute;
-      left: 115px;
+      left: 130px;
       top: 37px;
       .el-form {
-        width: 210px;
+        width: 230px;
         margin: 0;
         .el-form-item {
-          margin: 6px;
+          margin: 15px;
           .el-input.is-active .el-input__inner,
           .el-input__inner:focus {
             border-color: rgb(72, 199, 154);
@@ -201,8 +239,8 @@ export default {
     }
     .loginBtn {
       position: absolute;
-      top: 160px;
-      left: 120px;
+      top: 185px;
+      left: 146px;
       .el-button {
         width: 200px;
         height: 40px;
@@ -210,13 +248,40 @@ export default {
     }
     .seleceBox {
       position: absolute;
-      top: 140px;
-      left: 120px;
+      top: 160px;
+      left: 147px;
     }
     .modifyPassBtn {
       position: absolute;
-      top: 138px;
-      right: 130px;
+      top: 160px;
+      right: 153px;
+    }
+  }
+  .dialogClass {
+    .selectBox {
+      height: 40px;
+      .el-select {
+        position: absolute;
+        top:60px;
+        left: 100px;
+        width: 200px;
+      }
+    }
+
+    .el-form-item {
+      margin-top: -15px;
+      .el-input {
+        position: absolute;
+        left: 80px;
+        margin-top: 3px;
+        width: 200px;
+      }
+    }
+    .dialog-footer {
+      margin-top: -35px;
+      .el-button {
+        margin-top: -25px;
+      }
     }
   }
 }

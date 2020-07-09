@@ -6,8 +6,11 @@
         <el-form-item label="用户名:"  prop="name">
           <el-input v-model="user.name" placeholder="请输入用户名"></el-input>
         </el-form-item>
-        <el-form-item label="旧密码:">
-          <el-input type="password" placeholder="旧密码，第一次登陆可以为空"></el-input>
+         <el-form-item label="安全问题:" class="problemSty">
+         {{userProblem}}
+        </el-form-item>
+        <el-form-item label="问题答案:" prop="answer">
+          <el-input type="password" placeholder="输入你第一次登陆设置的问题"></el-input>
         </el-form-item>
         <el-form-item label="新密码:" prop="newUserPass">
           <el-input v-model="user.newUserPass" type="password" placeholder="请输入新密码"></el-input>
@@ -55,6 +58,7 @@ export default {
       }
     };
     return {
+      userProblem:"你的宠物是哈士奇吗？",
       user: {
         name: "",
         oldUserPass: "",
@@ -63,6 +67,8 @@ export default {
       },
       rules: {
           name:[{ required: true, message: '请输入用户名', trigger: 'blur' },
+            { min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'blur' }],
+          answer:[{ required: true, message: '请输入问题答案', trigger: 'blur' },
             { min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'blur' }],
         newUserPass: [{required: true, validator: validatePass, trigger: "blur" }],
         twoUserPass: [{required: true, validator: validatePass2, trigger: "blur" }]
@@ -128,6 +134,9 @@ export default {
       .el-input__inner:focus {
         border-color: rgb(72, 199, 154);
       }
+      .problemSty{
+        color:red;
+      }
       .el-form-item {
         .el-form-item__label{
           padding: 0 10px 0 0;
@@ -137,7 +146,7 @@ export default {
     }
     .postBtn {
       position: absolute;
-      top: 259px;
+      top: 320px;
       .el-button {
         position: absolute;
         left: 79px;
