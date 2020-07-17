@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import axios from 'axios'
-import Api from '../main/axios'
 
 
 import App from './App'
@@ -22,7 +21,12 @@ Vue.prototype.$Win = Win
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'))
 Vue.http = Vue.prototype.$http = axios
 Vue.config.productionTip = false
-Vue.prototype.$api = Api;
+
+const token = localStorage.getItem('token')
+
+var instance = Vue.http.create({
+});
+instance.defaults.headers.Authorization = `Bearer ${token}`
 
 /* eslint-disable no-new */
 new Vue({

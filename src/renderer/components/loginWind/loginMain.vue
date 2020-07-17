@@ -26,7 +26,7 @@
           </el-form-item>
           <el-form-item>
             <el-input
-              v-model="users.password"
+              v-model="users.userPass"
               prefix-icon="iconfont el-icon-lock"
               placeholder="请输入密码"
               type="password"
@@ -57,8 +57,8 @@
             <div class="selectBox">
               安全问题：
               <el-select v-model="userProblem.problem" placeholder="请选择问题：">
-                <el-option :label="problem1" value="shanghai"></el-option>
-                <el-option :label="problem2" value="beijing"></el-option>
+                <el-option :label="problem1" :value="problem1"></el-option>
+                <el-option :label="problem2" :value="problem2"></el-option>
               </el-select>
             </div>
 
@@ -66,7 +66,7 @@
               <el-input v-model="userProblem.answer" autocomplete="off"></el-input>
             </el-form-item>
             <el-form-item label="新密码：">
-              <el-input autocomplete="off"></el-input>
+              <el-input autocomplete="off" v-model="userProblem.newPass"></el-input>
             </el-form-item>
             <el-form-item label="确认密码：">
               <el-input v-model="userProblem.password" autocomplete="off"></el-input>
@@ -74,7 +74,7 @@
           </el-form>
           <div slot="footer" class="dialog-footer">
             <el-button @click="dialogFormVisible = false">取 消</el-button>
-            <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+            <el-button type="primary" @click="problemPost()">确 定</el-button>
           </div>
         </el-dialog>
       </div>
@@ -92,7 +92,7 @@ export default {
     return {
       users: {
         userName: "",
-        password: ""
+        userPass: ""
       },
       checkList: [],
       checkListItem: [
@@ -107,12 +107,14 @@ export default {
       dialogFormVisible: false,
       userProblem: {
         userName: "",
+        newPass:"",
         problem: "",
-        password:'',
-        answer:''
+        password: "",
+        answer: ""
       },
       problem1: "您的毕业学校名称？",
-      problem2: "最喜欢的运动项目是？"
+      problem2: "最喜欢的运动项目是？",
+      openWindFlag: false
     };
   },
   methods: {
@@ -142,19 +144,22 @@ export default {
     login(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
-          this.dialogFormVisible = true;
-          this.$api.post("/login", this.users, response => {
-            if (response.status >= 200 && response.status < 300) {
+          this.$http
+            .post("http://localhost:8999/login", this.users)
+            .catch(error => {
+              console.log(error);
+            })
+            .then(response => {
               if (response.data.code === 200) {
-                console.log(response.data.token);
-                localStorage.setItem("token", response.data.token);
+                 localStorage.setItem("token", response.data.token);
+                if (this.users.userPass == "") {
+                  this.dialogFormVisible = true;
 
-                this.$electron.ipcRenderer.send("loadHome", "this is msg");
+                } else {
+                  this.openWindFlag = true;
+                }
               }
-            } else {
-              console.log(response.message);
-            }
-          });
+            });
         } else {
           console.log("error submit!!");
           return false;
@@ -176,6 +181,29 @@ export default {
         win = null;
       });
       win.show();
+    },
+    problemPost() {
+      this.userProblem.userName = this.users.userName
+      this.$http
+        .post("http://localhost:8999/user/problem",this.userProblem)
+        .catch(error => {
+          console.log(error);
+        })
+        .then(response => {
+          if (response.data.code === 200) {
+            this.openWindFlag = true;
+            this.dialogFormVisible = false;
+          }else{
+            console.log()
+          }
+        });
+    }
+  },
+  watch: {
+    openWindFlag: function(newVal) {
+      if (newVal == true) {
+        this.$electron.ipcRenderer.send("loadHome", "this is msg");
+      }
     }
   },
   beforeDestroy() {
@@ -262,7 +290,7 @@ export default {
       height: 40px;
       .el-select {
         position: absolute;
-        top:60px;
+        top: 60px;
         left: 100px;
         width: 200px;
       }
